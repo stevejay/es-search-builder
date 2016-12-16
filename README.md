@@ -7,6 +7,8 @@ Query builder for Elasticsearch
 [![Coverage Status](https://coveralls.io/repos/github/stevejay/es-search-builder/badge.svg?branch=master)](https://coveralls.io/github/stevejay/es-search-builder?branch=master)
 [![dependency status](https://david-dm.org/stevejay/es-search-builder.svg)](https://david-dm.org/stevejay/es-search-builder)
 
+[![NPM](https://nodei.co/npm/es-search-builder.png)](https://nodei.co/npm/es-search-builder/)
+
 ## Install
 
 ```
