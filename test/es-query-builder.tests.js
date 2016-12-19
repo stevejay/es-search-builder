@@ -141,6 +141,42 @@ describe('es-search-builder', function() {
             });
         });
 
+        describe('setTerms', function() {
+            it('should set the terms', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const boolQuery = query.createBoolQuery();
+                const subject = boolQuery.addFilter();
+                subject.setTerms({ tags: ['a', 'b'] });
+
+                const result = multiSearchBuilder.build();
+
+                should(result).eql([
+                    { index: 'some-index' },
+                    {
+                        query: {
+                            bool: {
+                                filter: [{
+                                    terms: { tags: ['a', 'b'] }
+                                }]
+                            }
+                        }
+                    }
+                ]);
+            });
+
+            it('should throw when setting the terms twice', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const boolQuery = query.createBoolQuery();
+                const subject = boolQuery.addFilter();
+                subject.setTerms({ tags: ['a', 'b'] });
+                (() => subject.setTerms({ tags: ['a', 'b'] })).should.throw(/already been set/);
+            });
+        });
+
         describe('setTerm', function() {
             it('should set the term', function() {
                 const multiSearchBuilder = new MultiSearchBuilder();
