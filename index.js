@@ -124,10 +124,6 @@ class SearchBuilder {
         this.body.query = {};
         return new QueryBuilder(this.body.query);
     }
-
-    build() {
-        return this.body;
-    }
 }
 
 class SuggestBuilder {
