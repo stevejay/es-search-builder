@@ -20,8 +20,24 @@ $ npm install --save es-search-builder
 
 ## Usage
 
+### SearchBuilder
+
 ```js
-const MultiSearchBuilder = require('es-search-builder');
+const SearchBuilder = require('es-search-builder').SearchBuilder;
+
+const searchBuilder = new SearchBuilder();
+const query = searchBuilder.createQuery();
+const boolQuery = query.createBoolQuery()
+    .addFilter()
+    .setTerm({ status: 'Active' });
+
+const result = searchBuilder.build();
+```
+
+### MultiSearchBuilder
+
+```js
+const MultiSearchBuilder = require('es-search-builder').MultiSearchBuilder;
 
 const multiSearchBuilder = new MultiSearchBuilder();
 const search = multiSearchBuilder.createSearch({ index: 'some-index' });

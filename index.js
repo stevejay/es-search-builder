@@ -2,7 +2,7 @@
 
 class MultiSearchBuilder {
     constructor() {
-        this.multiSearches = [];
+        this.searches = [];
     }
 
     createSearch(header) {
@@ -11,26 +11,60 @@ class MultiSearchBuilder {
             body: {}
         };
 
-        this.multiSearches.push(search);
-        return new SearchBuilder(search);
+        this.searches.push(search);
+        return new SearchBuilder(search.body);
     }
 
     build() {
         const result = [];
 
-        this.multiSearches.forEach(multiSearch => {
-            result.push(multiSearch.header);
-            result.push(multiSearch.body);
+        this.searches.forEach(search => {
+            result.push(search.header);
+            result.push(search.body);
         });
 
         return result;
     }
 }
 
+class PublicSearchBuilder {
+    constructor() {
+        this.body = {};
+        this.searchBuilder = new SearchBuilder(this.body);
+    }
+
+    setSearchTake(take) {
+        return this.searchBuilder.setSearchTake(take);
+    }
+
+    setSearchSkip(skip) {
+        return this.searchBuilder.setSearchSkip(skip);
+    }
+
+    setSearchSource(source) {
+        return this.searchBuilder.setSearchSource(source);
+    }
+
+    setSearchSort(sort) {
+        return this.searchBuilder.setSearchSort(sort);
+    }
+
+    createSuggest(name) {
+        return this.searchBuilder.createSuggest(name);
+    }
+
+    createQuery() {
+        return this.searchBuilder.createQuery();
+    }
+
+    build() {
+        return this.body;
+    }
+}
+
 class SearchBuilder {
-    constructor(search) {
-        this.header = search.header;
-        this.body = search.body;
+    constructor(searchBody) {
+        this.body = searchBody;
     }
 
     setSearchTake(take) {
@@ -84,11 +118,15 @@ class SearchBuilder {
 
     createQuery() {
         if (this.body.hasOwnProperty('query')) {
-            throw new Error(`query clause already exists`);
+            throw new Error('query clause already exists');
         }
 
         this.body.query = {};
         return new QueryBuilder(this.body.query);
+    }
+
+    build() {
+        return this.body;
     }
 }
 
@@ -123,7 +161,7 @@ class QueryBuilder {
 
     createBoolQuery() {
         if (this.body.hasOwnProperty('bool')) {
-            throw new Error(`bool query already exists`);
+            throw new Error('bool query already exists');
         }
 
         this.body.bool = {};
@@ -225,4 +263,7 @@ class Filter {
     }
 }
 
-module.exports = MultiSearchBuilder;
+module.exports = exports = {
+    SearchBuilder: PublicSearchBuilder,
+    MultiSearchBuilder: MultiSearchBuilder
+};

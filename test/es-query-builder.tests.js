@@ -1,9 +1,131 @@
 'use strict';
 
 const should = require('should');
-const MultiSearchBuilder = require('../index');
+const MultiSearchBuilder = require('../index').MultiSearchBuilder;
+const SearchBuilder = require('../index').SearchBuilder;
 
 describe('es-search-builder', function() {
+    describe('SearchBuilder', function() {
+        describe('setSearchSort', function() {
+            it('should set the search sort', function() {
+                const subject = new SearchBuilder();
+                subject.setSearchSort([{ _score: { order: 'desc' } }]);
+
+                const result = subject.build();
+
+                should(result).eql({ sort: [{ _score: { order: 'desc' } }] });
+            });
+
+            it('should throw when setting the search sort twice', function() {
+                const subject = new SearchBuilder();
+                subject.setSearchSort([{ _score: { order: 'desc' } }]);
+
+                (() => subject.setSearchSort([{ _score: { order: 'desc' } }]))
+                    .should.throw(/already been set/);
+            });
+        });
+
+        describe('setSearchSource', function() {
+            it('should set the search source', function() {
+                const subject = new SearchBuilder();
+                subject.setSearchSource(['id', 'name']);
+
+                const result = subject.build();
+
+                should(result).eql({ _source: ['id', 'name'] });
+            });
+
+            it('should throw when setting the search source twice', function() {
+                const subject = new SearchBuilder();
+                subject.setSearchSource(['id', 'name']);
+                (() => subject.setSearchSource(['id', 'name'])).should.throw(/already been set/);
+            });
+        });
+
+        describe('setSearchTake', function() {
+            it('should set the search take', function() {
+                const subject = new SearchBuilder();
+                subject.setSearchTake(5);
+
+                const result = subject.build();
+
+                should(result).eql({ size: 5 });
+            });
+
+            it('should throw when setting the search take twice', function() {
+                const subject = new SearchBuilder();
+                subject.setSearchTake(5);
+                (() => subject.setSearchTake(5)).should.throw(/already been set/);
+            });
+        });
+
+        describe('setSearchSkip', function() {
+            it('should set the search skip', function() {
+                const subject = new SearchBuilder();
+                subject.setSearchSkip(5);
+
+                const result = subject.build();
+
+                should(result).eql({ from: 5 });
+            });
+
+            it('should throw when setting the search skip twice', function() {
+                const subject = new SearchBuilder();
+                subject.setSearchSkip(5);
+                (() => subject.setSearchSkip(5)).should.throw(/already been set/);
+            });
+        });
+
+        describe('createQuery', function() {
+            it('should create the query', function() {
+                const subject = new SearchBuilder();
+                subject.createQuery();
+
+                const result = subject.build();
+
+                should(result).eql({
+                    query: {}
+                });
+            });
+
+            it('should throw when trying to create a query twice', function() {
+                const subject = new SearchBuilder();
+                subject.createQuery();
+
+                (() => subject.createQuery()).should.throw(/already exists/);
+            });
+        });
+
+        describe('createSuggest', function() {
+            it('should create a suggest', function() {
+                const subject = new SearchBuilder();
+                const result = subject.createSuggest('my-suggest');
+
+                should(result.body).eql({});
+            });
+
+            it('should throw when trying to create a suggest twice', function() {
+                const subject = new SearchBuilder();
+                subject.createSuggest('my-suggest');
+
+                (() => subject.createSuggest('my-suggest')).should.throw(/already exists/);
+            });
+
+            it('should add the suggest correctly to the build', function() {
+                const subject = new SearchBuilder();
+                subject.createSuggest('my-suggest');
+
+                const result = subject.build();
+
+                should(result).eql({
+                    suggest: { 
+                        'my-suggest': {}
+                    }
+                });
+            });
+        });
+    });
+
     describe('SuggestBuilder', function() {
         describe('setSuggestText', function() {
             it('should set the suggest text', function() {
@@ -386,7 +508,7 @@ describe('es-search-builder', function() {
                 const multiSearchBuilder = new MultiSearchBuilder();
                 const search = multiSearchBuilder.createSearch({ index: 'some-index' });
                 const query = search.createQuery();
-                const subject = query.createBoolQuery();
+                query.createBoolQuery();
 
                 const result = multiSearchBuilder.build();
 
@@ -571,7 +693,6 @@ describe('es-search-builder', function() {
 
                 const result = subject.createSearch(header);
 
-                should(result.header).eql(header);
                 should(result.body).eql({});
             });
         });
