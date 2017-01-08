@@ -191,6 +191,21 @@ class BoolQueryBuilder {
         this.body.must.push(must);
         return new Must(must);
     }
+
+    addShould() {
+        const should = {};
+
+        if (!this.body.should) {
+            this.body.should = [];
+        }
+
+        this.body.should.push(should);
+        return new Should(should);
+    }
+
+    setMinimumShouldMatch(minimumShouldMatch) {
+        this.body.minimum_should_match = minimumShouldMatch;
+    }
 }
 
 class Must {
@@ -205,6 +220,21 @@ class Must {
 
         this.body.multi_match = multiMatch;
         return this;
+    }
+
+    setMatch(match) {
+        if (this.body.hasOwnProperty('match')) {
+            throw new Error('match value has already been set');
+        }
+
+        this.body.match = match;
+        return this;
+    }
+}
+
+class Should {
+    constructor(body) {
+        this.body = body;
     }
 
     setMatch(match) {

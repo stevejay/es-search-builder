@@ -4,6 +4,9 @@ const should = require('should');
 const MultiSearchBuilder = require('../index').MultiSearchBuilder;
 const SearchBuilder = require('../index').SearchBuilder;
 
+// need to remove the getter added by shouldjs
+delete Object.prototype.should;
+
 describe('es-search-builder', function() {
     describe('SearchBuilder', function() {
         describe('setSearchSort', function() {
@@ -20,8 +23,8 @@ describe('es-search-builder', function() {
                 const subject = new SearchBuilder();
                 subject.setSearchSort([{ _score: { order: 'desc' } }]);
 
-                (() => subject.setSearchSort([{ _score: { order: 'desc' } }]))
-                    .should.throw(/already been set/);
+                should(() => subject.setSearchSort([{ _score: { order: 'desc' } }]))
+                    .throw(/already been set/);
             });
         });
 
@@ -38,7 +41,7 @@ describe('es-search-builder', function() {
             it('should throw when setting the search source twice', function() {
                 const subject = new SearchBuilder();
                 subject.setSearchSource(['id', 'name']);
-                (() => subject.setSearchSource(['id', 'name'])).should.throw(/already been set/);
+                should(() => subject.setSearchSource(['id', 'name'])).throw(/already been set/);
             });
         });
 
@@ -55,7 +58,7 @@ describe('es-search-builder', function() {
             it('should throw when setting the search take twice', function() {
                 const subject = new SearchBuilder();
                 subject.setSearchTake(5);
-                (() => subject.setSearchTake(5)).should.throw(/already been set/);
+                should(() => subject.setSearchTake(5)).throw(/already been set/);
             });
         });
 
@@ -72,7 +75,7 @@ describe('es-search-builder', function() {
             it('should throw when setting the search skip twice', function() {
                 const subject = new SearchBuilder();
                 subject.setSearchSkip(5);
-                (() => subject.setSearchSkip(5)).should.throw(/already been set/);
+                should(() => subject.setSearchSkip(5)).throw(/already been set/);
             });
         });
 
@@ -92,7 +95,7 @@ describe('es-search-builder', function() {
                 const subject = new SearchBuilder();
                 subject.createQuery();
 
-                (() => subject.createQuery()).should.throw(/already exists/);
+                should(() => subject.createQuery()).throw(/already exists/);
             });
         });
 
@@ -108,7 +111,7 @@ describe('es-search-builder', function() {
                 const subject = new SearchBuilder();
                 subject.createSuggest('my-suggest');
 
-                (() => subject.createSuggest('my-suggest')).should.throw(/already exists/);
+                should(() => subject.createSuggest('my-suggest')).throw(/already exists/);
             });
 
             it('should add the suggest correctly to the build', function() {
@@ -153,7 +156,7 @@ describe('es-search-builder', function() {
                 const searchBuilder = multiSearchBuilder.createSearch({ index: 'some-index' });
                 const subject = searchBuilder.createSuggest('my-suggest');
                 subject.setSuggestText('a');
-                (() => subject.setSuggestText('b')).should.throw(/already been set/);
+                should(() => subject.setSuggestText('b')).throw(/already been set/);
             });
         });
 
@@ -185,7 +188,7 @@ describe('es-search-builder', function() {
                 const searchBuilder = multiSearchBuilder.createSearch({ index: 'some-index' });
                 const subject = searchBuilder.createSuggest('my-suggest');
                 subject.setSuggestCompletion({ size: 1 });
-                (() => subject.setSuggestCompletion({ size: 2 })).should.throw(/already been set/);
+                should(() => subject.setSuggestCompletion({ size: 2 })).throw(/already been set/);
             });
         });
     });
@@ -223,7 +226,7 @@ describe('es-search-builder', function() {
                 const boolQuery = query.createBoolQuery();
                 const subject = boolQuery.addFilter();
                 subject.setGeoBoundingBox({ type: 'indexed' });
-                (() => subject.setGeoBoundingBox({ type: 'indexed' })).should.throw(/already been set/);
+                should(() => subject.setGeoBoundingBox({ type: 'indexed' })).throw(/already been set/);
             });
         });
 
@@ -259,7 +262,7 @@ describe('es-search-builder', function() {
                 const boolQuery = query.createBoolQuery();
                 const subject = boolQuery.addFilter();
                 subject.setNested({ status: 'Active' });
-                (() => subject.setNested({ status: 'Active' })).should.throw(/already been set/);
+                should(() => subject.setNested({ status: 'Active' })).throw(/already been set/);
             });
         });
 
@@ -295,7 +298,7 @@ describe('es-search-builder', function() {
                 const boolQuery = query.createBoolQuery();
                 const subject = boolQuery.addFilter();
                 subject.setTerms({ tags: ['a', 'b'] });
-                (() => subject.setTerms({ tags: ['a', 'b'] })).should.throw(/already been set/);
+                should(() => subject.setTerms({ tags: ['a', 'b'] })).throw(/already been set/);
             });
         });
 
@@ -331,14 +334,52 @@ describe('es-search-builder', function() {
                 const boolQuery = query.createBoolQuery();
                 const subject = boolQuery.addFilter();
                 subject.setTerm({ status: 'Active' });
-                (() => subject.setTerm({ status: 'Active' })).should.throw(/already been set/);
+                should(() => subject.setTerm({ status: 'Active' })).throw(/already been set/);
+            });
+        });
+    });
+
+    describe('Should', function() {
+        describe('setMatch', function() {
+            it('should set the match', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const boolQuery = query.createBoolQuery();
+                const subject = boolQuery.addShould();
+                subject.setMatch({ name: 'foo' });
+
+                const result = multiSearchBuilder.build();
+
+                should(result).eql([
+                    { index: 'some-index' },
+                    {
+                        query: {
+                            bool: {
+                                should: [{
+                                    match: { name: 'foo' }
+                                }]
+                            }
+                        }
+                    }
+                ]);
+            });
+
+            it('should throw when setting the match twice', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const boolQuery = query.createBoolQuery();
+                const subject = boolQuery.addShould();
+                subject.setMatch({ name: 'foo' });
+                should(() => subject.setMatch({ name: 'foo' })).throw(/already been set/);
             });
         });
     });
 
     describe('Must', function() {
         describe('setMatch', function() {
-            it('should set the multi match', function() {
+            it('should set the match', function() {
                 const multiSearchBuilder = new MultiSearchBuilder();
                 const search = multiSearchBuilder.createSearch({ index: 'some-index' });
                 const query = search.createQuery();
@@ -362,14 +403,14 @@ describe('es-search-builder', function() {
                 ]);
             });
 
-            it('should throw when setting the multi match twice', function() {
+            it('should throw when setting the match twice', function() {
                 const multiSearchBuilder = new MultiSearchBuilder();
                 const search = multiSearchBuilder.createSearch({ index: 'some-index' });
                 const query = search.createQuery();
                 const boolQuery = query.createBoolQuery();
                 const subject = boolQuery.addMust();
                 subject.setMatch({ name: 'foo' });
-                (() => subject.setMatch({ name: 'foo' })).should.throw(/already been set/);
+                should(() => subject.setMatch({ name: 'foo' })).throw(/already been set/);
             });
         });
 
@@ -405,7 +446,7 @@ describe('es-search-builder', function() {
                 const boolQuery = query.createBoolQuery();
                 const subject = boolQuery.addMust();
                 subject.setMultiMatch({ query: 'foo' });
-                (() => subject.setMultiMatch({ query: 'foo' })).should.throw(/already been set/);
+                should(() => subject.setMultiMatch({ query: 'foo' })).throw(/already been set/);
             });
         });
     });
@@ -449,6 +490,29 @@ describe('es-search-builder', function() {
                         query: {
                             bool: {
                                 filter: [{}, {}]
+                            }
+                        }
+                    }
+                ]);
+            });
+        });
+
+        describe('setMinimumShouldMatch', function() {
+            it('should set the minimum', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const subject = query.createBoolQuery();
+                subject.setMinimumShouldMatch(3);
+
+                const result = multiSearchBuilder.build();
+
+                should(result).eql([
+                    { index: 'some-index' },
+                    {
+                        query: {
+                            bool: {
+                                minimum_should_match: 3
                             }
                         }
                     }
@@ -500,6 +564,52 @@ describe('es-search-builder', function() {
                 ]);
             });
         });
+
+        describe('addShould', function() {
+            it('should add a should clause', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const subject = query.createBoolQuery();
+
+                subject.addShould();
+
+                const result = multiSearchBuilder.build();
+
+                should(result).eql([
+                    { index: 'some-index' },
+                    {
+                        query: {
+                            bool: {
+                                should: [{}]
+                            }
+                        }
+                    }
+                ]);
+            });
+
+            it('should allowing adding multiple should clauses', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const subject = query.createBoolQuery();
+                subject.addShould();
+                subject.addShould();
+
+                const result = multiSearchBuilder.build();
+
+                should(result).eql([
+                    { index: 'some-index' },
+                    {
+                        query: {
+                            bool: {
+                                should: [{}, {}]
+                            }
+                        }
+                    }
+                ]);
+            });
+        });
     });
 
     describe('QueryBuilder', function() {
@@ -528,7 +638,7 @@ describe('es-search-builder', function() {
                 const query = search.createQuery();
                 query.createBoolQuery();
 
-                (() => query.createBoolQuery()).should.throw(/already exists/);
+                should(() => query.createBoolQuery()).throw(/already exists/);
             });
         });
     });
@@ -553,8 +663,8 @@ describe('es-search-builder', function() {
                 const subject = multiSearchBuilder.createSearch({ index: 'some-index' });
                 subject.setSearchSort([{ _score: { order: 'desc' } }]);
 
-                (() => subject.setSearchSort([{ _score: { order: 'desc' } }]))
-                    .should.throw(/already been set/);
+                should(() => subject.setSearchSort([{ _score: { order: 'desc' } }]))
+                    .throw(/already been set/);
             });
         });
 
@@ -576,7 +686,7 @@ describe('es-search-builder', function() {
                 const multiSearchBuilder = new MultiSearchBuilder();
                 const subject = multiSearchBuilder.createSearch({ index: 'some-index' });
                 subject.setSearchSource(['id', 'name']);
-                (() => subject.setSearchSource(['id', 'name'])).should.throw(/already been set/);
+                should(() => subject.setSearchSource(['id', 'name'])).throw(/already been set/);
             });
         });
 
@@ -598,7 +708,7 @@ describe('es-search-builder', function() {
                 const multiSearchBuilder = new MultiSearchBuilder();
                 const subject = multiSearchBuilder.createSearch({ index: 'some-index' });
                 subject.setSearchTake(5);
-                (() => subject.setSearchTake(5)).should.throw(/already been set/);
+                should(() => subject.setSearchTake(5)).throw(/already been set/);
             });
         });
 
@@ -620,7 +730,7 @@ describe('es-search-builder', function() {
                 const multiSearchBuilder = new MultiSearchBuilder();
                 const subject = multiSearchBuilder.createSearch({ index: 'some-index' });
                 subject.setSearchSkip(5);
-                (() => subject.setSearchSkip(5)).should.throw(/already been set/);
+                should(() => subject.setSearchSkip(5)).throw(/already been set/);
             });
         });
 
@@ -645,7 +755,7 @@ describe('es-search-builder', function() {
                 const subject = multiSearchBuilder.createSearch({ index: 'some-index' });
                 subject.createQuery();
 
-                (() => subject.createQuery()).should.throw(/already exists/);
+                should(() => subject.createQuery()).throw(/already exists/);
             });
         });
 
@@ -663,7 +773,7 @@ describe('es-search-builder', function() {
                 const subject = multiSearchBuilder.createSearch({ index: 'some-index' });
                 subject.createSuggest('my-suggest');
 
-                (() => subject.createSuggest('my-suggest')).should.throw(/already exists/);
+                should(() => subject.createSuggest('my-suggest')).throw(/already exists/);
             });
 
             it('should add the suggest correctly to the build', function() {
