@@ -245,6 +245,31 @@ class Should {
         this.body.match = match;
         return this;
     }
+
+    setTerm(term) {
+        if (this.body.hasOwnProperty('term')) {
+            throw new Error('term value has already been set');
+        }
+
+        this.body.term = term;
+        return this;
+    }
+
+    createNestedQuery(nestedClassPath) {
+        if (this.body.hasOwnProperty('nested')) {
+            throw new Error('nested query already exists');
+        }
+
+        const queryBody = {};
+
+        const nested = {
+            path: nestedClassPath,
+            query: queryBody
+        };
+
+        this.body.nested = nested;
+        return new QueryBuilder(queryBody);
+    }
 }
 
 class Filter {
@@ -261,6 +286,15 @@ class Filter {
         return this;
     }
 
+    setRange(range) {
+        if (this.body.hasOwnProperty('range')) {
+            throw new Error('range value has already been set');
+        }
+
+        this.body.range = range;
+        return this;
+    }
+
     setTerms(terms) {
         if (this.body.hasOwnProperty('terms')) {
             throw new Error('terms value has already been set');
@@ -268,6 +302,31 @@ class Filter {
 
         this.body.terms = terms;
         return this;
+    }
+
+    createQuery() {
+        if (this.body.hasOwnProperty('query')) {
+            throw new Error('query clause already exists');
+        }
+
+        this.body.query = {};
+        return new QueryBuilder(this.body.query);
+    }
+
+    createNestedQuery(nestedClassPath) {
+        if (this.body.hasOwnProperty('nested')) {
+            throw new Error('nested query already exists');
+        }
+
+        const queryBody = {};
+
+        const nested = {
+            path: nestedClassPath,
+            query: queryBody
+        };
+
+        this.body.nested = nested;
+        return new QueryBuilder(queryBody);
     }
 
     setNested(nested) {

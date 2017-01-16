@@ -302,6 +302,123 @@ describe('es-search-builder', function() {
             });
         });
 
+        describe('createNestedQuery', function() {
+            it('should create the nested query', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const boolQuery = query.createBoolQuery();
+                const subject = boolQuery.addFilter();
+                const nestedQuery = subject.createNestedQuery('some.path');
+                nestedQuery.createBoolQuery();
+
+                const result = multiSearchBuilder.build();
+
+                should(result).eql([
+                    { index: 'some-index' },
+                    {
+                        query: {
+                            bool: {
+                                filter: [{
+                                    nested: {
+                                        path: 'some.path',
+                                        query: {
+                                            bool: { }
+                                        }
+                                    }
+                                }]
+                            }
+                        }
+                    }
+                ]);
+            });
+
+            it('should throw when setting the nested clause twice', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const boolQuery = query.createBoolQuery();
+                const subject = boolQuery.addFilter();
+                subject.createNestedQuery('some.path');
+                should(() => subject.createNestedQuery('some.otherpath')).throw(/already exists/);
+            });
+        });
+
+        describe('createQuery', function() {
+            it('should create the query', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const boolQuery = query.createBoolQuery();
+                const subject = boolQuery.addFilter();
+                const filterQuery = subject.createQuery();
+                filterQuery.createBoolQuery();
+
+                const result = multiSearchBuilder.build();
+
+                should(result).eql([
+                    { index: 'some-index' },
+                    {
+                        query: {
+                            bool: {
+                                filter: [{
+                                    query: {
+                                        bool: { }
+                                    }
+                                }]
+                            }
+                        }
+                    }
+                ]);
+            });
+
+            it('should throw when creating the query twice', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const boolQuery = query.createBoolQuery();
+                const subject = boolQuery.addFilter();
+                subject.createQuery();
+                should(() => subject.createQuery()).throw(/already exists/);
+            });
+        });
+
+        describe('setRange', function() {
+            it('should set the range', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const boolQuery = query.createBoolQuery();
+                const subject = boolQuery.addFilter();
+                subject.setRange({ count: { gte: 4 } });
+
+                const result = multiSearchBuilder.build();
+
+                should(result).eql([
+                    { index: 'some-index' },
+                    {
+                        query: {
+                            bool: {
+                                filter: [{
+                                    range: { count: { gte: 4 } }
+                                }]
+                            }
+                        }
+                    }
+                ]);
+            });
+
+            it('should throw when setting the range twice', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const boolQuery = query.createBoolQuery();
+                const subject = boolQuery.addFilter();
+                subject.setRange({ count: { gte: 4 } });
+                should(() => subject.setRange({ count: { gte: 4 } })).throw(/already been set/);
+            });
+        });
+
         describe('setTerm', function() {
             it('should set the term', function() {
                 const multiSearchBuilder = new MultiSearchBuilder();
@@ -340,6 +457,84 @@ describe('es-search-builder', function() {
     });
 
     describe('Should', function() {
+        describe('createNestedQuery', function() {
+            it('should create the nested query', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const boolQuery = query.createBoolQuery();
+                const subject = boolQuery.addShould();
+                const nestedQuery = subject.createNestedQuery('some.path');
+                nestedQuery.createBoolQuery();
+
+                const result = multiSearchBuilder.build();
+
+                should(result).eql([
+                    { index: 'some-index' },
+                    {
+                        query: {
+                            bool: {
+                                should: [{
+                                    nested: {
+                                        path: 'some.path',
+                                        query: {
+                                            bool: { }
+                                        }
+                                    }
+                                }]
+                            }
+                        }
+                    }
+                ]);
+            });
+
+            it('should throw when setting the nested clause twice', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const boolQuery = query.createBoolQuery();
+                const subject = boolQuery.addShould();
+                subject.createNestedQuery('some.path');
+                should(() => subject.createNestedQuery('some.otherpath')).throw(/already exists/);
+            });
+        });
+
+        describe('setTerm', function() {
+            it('should set the term', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const boolQuery = query.createBoolQuery();
+                const subject = boolQuery.addShould();
+                subject.setTerm({ status: 'Active' });
+
+                const result = multiSearchBuilder.build();
+
+                should(result).eql([
+                    { index: 'some-index' },
+                    {
+                        query: {
+                            bool: {
+                                should: [{
+                                    term: { status: 'Active' }
+                                }]
+                            }
+                        }
+                    }
+                ]);
+            });
+
+            it('should throw when setting the term twice', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const boolQuery = query.createBoolQuery();
+                const subject = boolQuery.addShould();
+                subject.setTerm({ status: 'Active' });
+                should(() => subject.setTerm({ status: 'Active' })).throw(/already been set/);
+            });
+        });
+
         describe('setMatch', function() {
             it('should set the match', function() {
                 const multiSearchBuilder = new MultiSearchBuilder();
