@@ -457,6 +457,42 @@ describe('es-search-builder', function() {
     });
 
     describe('Should', function() {
+        describe('setRange', function() {
+            it('should set the range', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const boolQuery = query.createBoolQuery();
+                const subject = boolQuery.addShould();
+                subject.setRange({ count: { gte: 4 } });
+
+                const result = multiSearchBuilder.build();
+
+                should(result).eql([
+                    { index: 'some-index' },
+                    {
+                        query: {
+                            bool: {
+                                should: [{
+                                    range: { count: { gte: 4 } }
+                                }]
+                            }
+                        }
+                    }
+                ]);
+            });
+
+            it('should throw when setting the range twice', function() {
+                const multiSearchBuilder = new MultiSearchBuilder();
+                const search = multiSearchBuilder.createSearch({ index: 'some-index' });
+                const query = search.createQuery();
+                const boolQuery = query.createBoolQuery();
+                const subject = boolQuery.addShould();
+                subject.setRange({ count: { gte: 4 } });
+                should(() => subject.setRange({ count: { gte: 4 } })).throw(/already been set/);
+            });
+        });
+
         describe('createNestedQuery', function() {
             it('should create the nested query', function() {
                 const multiSearchBuilder = new MultiSearchBuilder();

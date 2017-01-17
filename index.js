@@ -255,6 +255,15 @@ class Should {
         return this;
     }
 
+    setRange(range) {
+        if (this.body.hasOwnProperty('range')) {
+            throw new Error('range value has already been set');
+        }
+
+        this.body.range = range;
+        return this;
+    }
+
     createNestedQuery(nestedClassPath) {
         if (this.body.hasOwnProperty('nested')) {
             throw new Error('nested query already exists');
